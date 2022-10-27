@@ -42,20 +42,32 @@ public class JsonRecyclerView extends RecyclerView {
     }
 
     public void bindJson(String jsonStr) {
+        bindJson(jsonStr, false);
+    }
+
+    public void bindJson(String jsonStr, boolean expand) {
         mAdapter = null;
-        mAdapter = new JsonViewerAdapter(jsonStr);
+        mAdapter = new JsonViewerAdapter(jsonStr, expand);
         setAdapter(mAdapter);
     }
 
     public void bindJson(JSONArray array) {
+        bindJson(array,false);
+    }
+
+    public void bindJson(JSONArray array, boolean expand) {
         mAdapter = null;
-        mAdapter = new JsonViewerAdapter(array);
+        mAdapter = new JsonViewerAdapter(array, expand);
         setAdapter(mAdapter);
     }
 
     public void bindJson(JSONObject object) {
+        bindJson(object, false);
+    }
+
+    public void bindJson(JSONObject object, boolean expand) {
         mAdapter = null;
-        mAdapter = new JsonViewerAdapter(object);
+        mAdapter = new JsonViewerAdapter(object, expand);
         setAdapter(mAdapter);
     }
 

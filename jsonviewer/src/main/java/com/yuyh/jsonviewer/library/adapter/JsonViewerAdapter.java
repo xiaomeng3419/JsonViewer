@@ -21,13 +21,17 @@ import org.json.JSONTokener;
 public class JsonViewerAdapter extends BaseJsonViewerAdapter<JsonViewerAdapter.JsonItemViewHolder> {
 
     private String jsonStr;
-
+    private boolean expand = false;
     private JSONObject mJSONObject;
     private JSONArray mJSONArray;
 
     public JsonViewerAdapter(String jsonStr) {
-        this.jsonStr = jsonStr;
+        this(jsonStr, false);
+    }
 
+    public JsonViewerAdapter(String jsonStr, boolean expand) {
+        this.jsonStr = jsonStr;
+        this.expand = expand;
         Object object = null;
         try {
             object = new JSONTokener(jsonStr).nextValue();
@@ -44,6 +48,11 @@ public class JsonViewerAdapter extends BaseJsonViewerAdapter<JsonViewerAdapter.J
     }
 
     public JsonViewerAdapter(JSONObject jsonObject) {
+        this(jsonObject, false);
+    }
+
+    public JsonViewerAdapter(JSONObject jsonObject, boolean expand) {
+        this.expand = expand;
         this.mJSONObject = jsonObject;
         if (mJSONObject == null) {
             throw new IllegalArgumentException("jsonObject can not be null.");
@@ -51,6 +60,11 @@ public class JsonViewerAdapter extends BaseJsonViewerAdapter<JsonViewerAdapter.J
     }
 
     public JsonViewerAdapter(JSONArray jsonArray) {
+        this(jsonArray, false);
+    }
+
+    public JsonViewerAdapter(JSONArray jsonArray, boolean expand) {
+        this.expand = expand;
         this.mJSONArray = jsonArray;
         if (mJSONArray == null) {
             throw new IllegalArgumentException("jsonArray can not be null.");
@@ -85,9 +99,9 @@ public class JsonViewerAdapter extends BaseJsonViewerAdapter<JsonViewerAdapter.J
             String key = mJSONObject.names().optString(position - 1); // 遍历key
             Object value = mJSONObject.opt(key);
             if (position < getItemCount() - 2) {
-                handleJsonObject(key, value, itemView, true, 1);
+                handleJsonObject(key, value, itemView, true, 1, expand);
             } else {
-                handleJsonObject(key, value, itemView, false, 1); // 最后一组，结尾不需要逗号
+                handleJsonObject(key, value, itemView, false, 1, expand); // 最后一组，结尾不需要逗号
             }
         }
 
@@ -106,9 +120,9 @@ public class JsonViewerAdapter extends BaseJsonViewerAdapter<JsonViewerAdapter.J
 
             Object value = mJSONArray.opt(position - 1); // 遍历array
             if (position < getItemCount() - 2) {
-                handleJsonArray(value, itemView, true, 1);
+                handleJsonArray(value, itemView, true, 1, expand);
             } else {
-                handleJsonArray(value, itemView, false, 1); // 最后一组，结尾不需要逗号
+                handleJsonArray(value, itemView, false, 1, expand); // 最后一组，结尾不需要逗号
             }
         }
     }
@@ -137,7 +151,7 @@ public class JsonViewerAdapter extends BaseJsonViewerAdapter<JsonViewerAdapter.J
      * @param appendComma
      * @param hierarchy
      */
-    private void handleJsonObject(String key, Object value, JsonItemView itemView, boolean appendComma, int hierarchy) {
+    private void handleJsonObject(String key, Object value, JsonItemView itemView, boolean appendComma, int hierarchy, boolean expand) {
         SpannableStringBuilder keyBuilder = new SpannableStringBuilder(Utils.getHierarchyStr(hierarchy));
         keyBuilder.append("\"").append(key).append("\"").append(":");
         keyBuilder.setSpan(new ForegroundColorSpan(KEY_COLOR), 0, keyBuilder.length() - 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
@@ -145,7 +159,7 @@ public class JsonViewerAdapter extends BaseJsonViewerAdapter<JsonViewerAdapter.J
 
         itemView.showLeft(keyBuilder);
 
-        handleValue(value, itemView, appendComma, hierarchy);
+        handleValue(value, itemView, appendComma, hierarchy, expand);
     }
 
     /**
@@ -156,10 +170,10 @@ public class JsonViewerAdapter extends BaseJsonViewerAdapter<JsonViewerAdapter.J
      * @param appendComma 结尾是否需要逗号(最后一组 value 不需要逗号)
      * @param hierarchy   缩进层级
      */
-    private void handleJsonArray(Object value, JsonItemView itemView, boolean appendComma, int hierarchy) {
+    private void handleJsonArray(Object value, JsonItemView itemView, boolean appendComma, int hierarchy, boolean expand) {
         itemView.showLeft(new SpannableStringBuilder(Utils.getHierarchyStr(hierarchy)));
 
-        handleValue(value, itemView, appendComma, hierarchy);
+        handleValue(value, itemView, appendComma, hierarchy, expand);
     }
 
     /**
@@ -168,7 +182,7 @@ public class JsonViewerAdapter extends BaseJsonViewerAdapter<JsonViewerAdapter.J
      * @param appendComma 结尾是否需要逗号(最后一组 key:value 不需要逗号)
      * @param hierarchy   缩进层级
      */
-    private void handleValue(Object value, JsonItemView itemView, boolean appendComma, int hierarchy) {
+    private void handleValue(Object value, final JsonItemView itemView, boolean appendComma, int hierarchy, boolean expand) {
         SpannableStringBuilder valueBuilder = new SpannableStringBuilder();
         if (value instanceof Number) {
             valueBuilder.append(value.toString());
@@ -181,6 +195,14 @@ public class JsonViewerAdapter extends BaseJsonViewerAdapter<JsonViewerAdapter.J
             valueBuilder.append("Object{...}");
             valueBuilder.setSpan(new ForegroundColorSpan(BRACES_COLOR), 0, valueBuilder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             itemView.setIconClickListener(new JsonItemClickListener(value, itemView, appendComma, hierarchy + 1));
+            if (expand) {
+                itemView.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        itemView.performIconAction();
+                    }
+                });
+            }
         } else if (value instanceof JSONArray) {
             itemView.showIcon(true);
             valueBuilder.append("Array[").append(String.valueOf(((JSONArray) value).length())).append("]");
@@ -189,6 +211,14 @@ public class JsonViewerAdapter extends BaseJsonViewerAdapter<JsonViewerAdapter.J
             valueBuilder.setSpan(new ForegroundColorSpan(NUMBER_COLOR), 6, len - 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             valueBuilder.setSpan(new ForegroundColorSpan(BRACES_COLOR), len - 1, len, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             itemView.setIconClickListener(new JsonItemClickListener(value, itemView, appendComma, hierarchy + 1));
+            if (expand) {
+                itemView.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        itemView.performIconAction();
+                    }
+                });
+            }
         } else if (value instanceof String) {
             itemView.hideIcon();
             valueBuilder.append("\"").append(value.toString()).append("\"");
@@ -243,9 +273,9 @@ public class JsonViewerAdapter extends BaseJsonViewerAdapter<JsonViewerAdapter.J
                     childItemView.setRightColor(BRACES_COLOR);
                     Object childValue = array.opt(i);
                     if (isJsonArray) {
-                        handleJsonArray(childValue, childItemView, i < array.length() - 1, hierarchy);
+                        handleJsonArray(childValue, childItemView, i < array.length() - 1, hierarchy, true);
                     } else {
-                        handleJsonObject((String) childValue, ((JSONObject) value).opt((String) childValue), childItemView, i < array.length() - 1, hierarchy);
+                        handleJsonObject((String) childValue, ((JSONObject) value).opt((String) childValue), childItemView, i < array.length() - 1, hierarchy, true);
                     }
                     itemView.addViewNoInvalidate(childItemView);
                 }

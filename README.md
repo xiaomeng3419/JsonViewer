@@ -21,7 +21,9 @@ buildscript {
 
 ```
 dependencies {
-    implementation 'com.github.smuyyh:JsonViewer:1.0.7'
+    // If you want to set the collapsed state of the default json， use
+    // implementation 'com.github.smuyyh:JsonViewer:1.0.7'
+    implementation 'com.github.xiaomeng3419:JsonViewer:1.0.7'
 }
 ```
 
@@ -85,3 +87,7 @@ mRecyclewView.setTextSize()
    See the License for the specific language governing permissions and
    limitations under the License.
 ```
+
+2022-10-27 Set the default folding and filling of json data, As shown below
+
+<img src="https://github.com/xiaomeng3419/JsonViewer/blob/master/screenshot/expanded.jpg?raw=true" width="270"/>

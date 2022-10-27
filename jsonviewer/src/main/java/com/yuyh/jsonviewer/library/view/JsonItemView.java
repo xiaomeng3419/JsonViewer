@@ -129,4 +129,8 @@ public class JsonItemView extends LinearLayout {
         }
         addViewInLayout(child, -1, params);
     }
+
+    public void performIconAction() {
+        mIvIcon.performClick();
+    }
 }

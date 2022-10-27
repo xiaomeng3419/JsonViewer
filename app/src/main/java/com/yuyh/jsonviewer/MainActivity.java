@@ -1,9 +1,13 @@
 package com.yuyh.jsonviewer;
 
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.RecyclerView;
+import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.MotionEvent;
+import android.view.View;
 import android.widget.HorizontalScrollView;
 
 import com.yuyh.jsonviewer.library.JsonRecyclerView;
@@ -20,7 +24,13 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
+        if (getSupportActionBar() != null) {
+            View switchView = LayoutInflater.from(this).inflate(R.layout.switch_layout_view, null);
+            getSupportActionBar().setDisplayShowCustomEnabled(true);
+            ActionBar.LayoutParams layoutParams = new ActionBar.LayoutParams(ActionBar.LayoutParams.WRAP_CONTENT,
+                    ActionBar.LayoutParams.WRAP_CONTENT, Gravity.END);
+            getSupportActionBar().setCustomView(switchView, layoutParams);
+        }
         mHScrollView = findViewById(R.id.hsv);
 
         mRecyclewView = findViewById(R.id.rv_json);
